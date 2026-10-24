@@ -40,6 +40,21 @@ bundles [GTKWave](https://gtkwave.sourceforge.net/) for waveforms.
 
 Tested against Icarus Verilog 12.0.
 
+### Optional: make
+
+`run.ps1` needs nothing beyond Icarus. The `make` commands additionally need
+GNU Make:
+
+    winget install ezwinports.make
+
+The Makefile's recipes are POSIX, and Windows make quietly falls back to
+`cmd.exe`, which cannot run them — so it pins its shell to Git for Windows'
+`sh.exe`. Git for Windows is therefore required for the `make` path; it is
+already there if you use Git Bash. If Git lives outside `C:\Program Files\Git`,
+pass `make SHELL=/path/to/sh`.
+
+Tested with GNU Make 4.4.1 from both PowerShell and Git Bash.
+
 ## Running a project
 
 1. Open a terminal at the repo root (`D:\Practice\Verilog`).
