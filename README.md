@@ -11,10 +11,11 @@ setup at the repo root.
       01-hello-world/     a project: src/, optional tb/, its own README
         src/              the design (synthesizable code)
         README.md
-      02-basic-gates/     all seven gates + self-checking testbench
+      02-basic-gates/     all seven gates, logic + waveform testbenches
         src/
         tb/
         README.md
+        project.mk        names the default top, since tb/ has two
       _template/          copy this to start a new project
         src/
         tb/               testbench: stimulus, $display, $finish
@@ -92,6 +93,7 @@ inside that directory — so waveforms land in `build/`, never the repo root.
 | --- | --- | --- |
 | Compile and simulate | `make run PROJ=<name>` | `.\run.ps1 <name>` |
 | Simulate, then open waveform | `make wave PROJ=<name>` | `.\run.ps1 <name> -Wave` |
+| Pick the top module | `make run PROJ=<name> TOP=<tb>` | `.\run.ps1 <name> -Top <tb>` |
 | List projects | `make list` | `.\run.ps1 -List` |
 | Delete one project's output | `make clean PROJ=<name>` | `.\run.ps1 <name> -Clean` |
 | Delete all output | `make clean-all` | — |
@@ -138,6 +140,12 @@ Expected output:
       1 1 |  1   1    0     0    0   0    1
 
     basic_gates_tb: all 28 checks passed
+
+It ships a second testbench, `basic_gates_wave_tb`, built for waveform viewing
+rather than speed — a 20 ns clock and each input combination held a full period:
+
+    make wave PROJ=02-basic-gates TOP=basic_gates_wave_tb
+    .\run.ps1 02-basic-gates -Wave -Top basic_gates_wave_tb
 
 A failing gate is named with both values and ends in `$fatal`, so the build
 fails rather than the error scrolling past. See the project's README for detail.

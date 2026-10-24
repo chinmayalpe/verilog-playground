@@ -6,7 +6,7 @@
 .EXAMPLE
     .\run.ps1 01-hello-world
 .EXAMPLE
-    .\run.ps1 02-counter -Wave
+    .\run.ps1 02-basic-gates -Wave -Top basic_gates_wave_tb
 .EXAMPLE
     .\run.ps1 -List
 #>
@@ -14,6 +14,10 @@
 param(
     [Parameter(Position = 0)]
     [string]$Project = '01-hello-world',
+
+    # Root module to elaborate. Needed only when a project has more than one
+    # testbench; otherwise Icarus infers it.
+    [string]$Top,
 
     [switch]$Wave,
     [switch]$List,
@@ -53,6 +57,17 @@ if (-not (Get-Command iverilog -ErrorAction SilentlyContinue)) {
     Write-Error "iverilog not found on PATH. Install it with 'winget install Icarus.Verilog', then add C:\iverilog\bin to PATH and reopen the shell."
 }
 
+# A project with several testbenches names its default root in project.mk, the
+# same file make reads, so both runners agree. -Top overrides it for one run.
+if (-not $Top) {
+    $projectMk = Join-Path $projDir 'project.mk'
+    if (Test-Path $projectMk) {
+        $hit = Select-String -Path $projectMk -Pattern '^\s*TOP\s*[:?]?=\s*(\S+)' |
+            Select-Object -First 1
+        if ($hit) { $Top = $hit.Matches[0].Groups[1].Value }
+    }
+}
+
 # The outer @(...) is load-bearing: a project with a single .v file would
 # otherwise leave $sources a bare string, and passing a string where an argument
 # array is expected feeds the command one character at a time.
@@ -74,8 +89,14 @@ if (-not (Test-Path $buildDir)) {
 }
 $vvpOut = Join-Path $buildDir 'sim.vvp'
 
-Write-Host "Compiling $Project ($($sources.Count) file(s))..." -ForegroundColor Cyan
-& iverilog -g2012 -Wall -o $vvpOut $sources
+$ivArgs = @('-g2012', '-Wall')
+if ($Top) { $ivArgs += @('-s', $Top) }
+$ivArgs += @('-o', $vvpOut)
+$ivArgs += $sources
+
+$topNote = if ($Top) { ", top $Top" } else { '' }
+Write-Host "Compiling $Project ($($sources.Count) file(s)$topNote)..." -ForegroundColor Cyan
+& iverilog $ivArgs
 if ($LASTEXITCODE -ne 0) { Write-Error "iverilog failed with exit code $LASTEXITCODE" }
 
 # Run from the build dir so any $dumpfile output lands there, not in the repo root.
