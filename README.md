@@ -20,52 +20,107 @@ setup at the repo root.
 
 Folders beginning with `_` are not projects.
 
-## Running
+## Setup (once)
 
-Pick a project with `PROJ`:
+Simulation uses [Icarus Verilog](https://steveicarus.github.io/iverilog/), which
+bundles [GTKWave](https://gtkwave.sourceforge.net/) for waveforms.
 
-    make run PROJ=01-hello-world    # compile and simulate
-    make wave PROJ=01-hello-world   # simulate, then open the VCD in GTKWave
-    make list                       # show available projects
-    make clean PROJ=01-hello-world  # drop that project's build output
+1. Install it:
 
-On Windows without `make`:
+       winget install Icarus.Verilog
 
+2. The installer does not touch `PATH`. Add both of these:
+
+       C:\iverilog\bin
+       C:\iverilog\gtkwave\bin
+
+3. Reopen the terminal, then check it took:
+
+       iverilog -V
+
+Tested against Icarus Verilog 12.0.
+
+## Running a project
+
+1. Open a terminal at the repo root (`D:\Practice\Verilog`).
+2. List what's available:
+
+       make list            # or:  .\run.ps1 -List
+
+3. Run one by name:
+
+       make run PROJ=01-hello-world
+       .\run.ps1 01-hello-world          # Windows, no make needed
+
+Output goes to `build/<project>/`. Each run recompiles every `.v` under that
+project's `src/` and `tb/` into `build/<project>/sim.vvp`, then simulates from
+inside that directory — so waveforms land in `build/`, never the repo root.
+
+### All commands
+
+| What | make | PowerShell |
+| --- | --- | --- |
+| Compile and simulate | `make run PROJ=<name>` | `.\run.ps1 <name>` |
+| Simulate, then open waveform | `make wave PROJ=<name>` | `.\run.ps1 <name> -Wave` |
+| List projects | `make list` | `.\run.ps1 -List` |
+| Delete one project's output | `make clean PROJ=<name>` | `.\run.ps1 <name> -Clean` |
+| Delete all output | `make clean-all` | — |
+
+`make` defaults to `PROJ=01-hello-world`, as does `run.ps1` with no argument.
+
+`-Wave` / `make wave` only opens something if the testbench dumps a VCD, which
+needs `$dumpfile("wave.vcd");` and `$dumpvars;` in an `initial` block.
+
+## Projects
+
+### 01-hello-world
+
+The obligatory first program: prints a message and exits. No ports, no clock and
+no testbench — `hello.v` drives itself from an `initial` block.
+
+    make run PROJ=01-hello-world
     .\run.ps1 01-hello-world
-    .\run.ps1 01-hello-world -Wave
-    .\run.ps1 -List
-    .\run.ps1 01-hello-world -Clean
 
-Both compile every `.v` under the project's `src/` and `tb/` into
-`build/<project>/sim.vvp` and run it from that directory, so waveforms land in
-`build/` rather than the repo root.
+Expected output:
+
+    Hello, World Chinmay
+    .../hello.v:5: $finish called at 0 (1s)
+
+The second line is just Icarus reporting where `$finish` was hit, not an error.
+The path is relative under `make`, absolute under `run.ps1`.
+
+### _template (not a project)
+
+A 2-input AND gate with a self-checking testbench. Not interesting in itself,
+but it's the fastest way to confirm a fresh install works, since it exercises
+the testbench and waveform paths that `01-hello-world` doesn't:
+
+    make run PROJ=_template
+    .\run.ps1 _template
+
+Expected output:
+
+    VCD info: dumpfile wave.vcd opened for output.
+    top_tb: all checks passed
+
+Then `make wave PROJ=_template` opens that VCD in GTKWave.
 
 ## Adding a project
 
-    cp -r projects/_template projects/02-counter
+1. Copy the template:
 
-Rename `src/top.v` and its module, point `tb/top_tb.v` at the new name, and
-update the project's README. Nothing needs registering — the build discovers
-projects by folder name.
+       cp -r projects/_template projects/02-counter
+
+2. Rename `src/top.v` and the module inside it.
+3. Point `tb/top_tb.v` at the new module name.
+4. Rewrite that project's `README.md` to say what it does.
+5. Run it — nothing needs registering, the build finds projects by folder name:
+
+       make run PROJ=02-counter
 
 If a project ends up with more than one root module, Icarus can't guess the
-entry point; add a `project.mk` naming it:
+entry point; add a `projects/<name>/project.mk` naming it:
 
     TOP = counter_tb
 
-The same file can override `IVFLAGS` for a project that needs extra flags.
-
-## Toolchain
-
-Simulation uses [Icarus Verilog](https://steveicarus.github.io/iverilog/), which
-bundles [GTKWave](https://gtkwave.sourceforge.net/) for waveforms:
-
-    winget install Icarus.Verilog
-
-The installer does not touch `PATH`. Add both of these to it, then reopen the
-shell:
-
-    C:\iverilog\bin
-    C:\iverilog\gtkwave\bin
-
-Verify with `iverilog -V`. Tested against Icarus Verilog 12.0.
+The same file can override `IVFLAGS` for a project needing extra flags.
