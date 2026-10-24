@@ -57,9 +57,15 @@ The same file can override `IVFLAGS` for a project that needs extra flags.
 
 ## Toolchain
 
-Simulation uses [Icarus Verilog](https://steveicarus.github.io/iverilog/), with
-[GTKWave](https://gtkwave.sourceforge.net/) for waveforms:
+Simulation uses [Icarus Verilog](https://steveicarus.github.io/iverilog/), which
+bundles [GTKWave](https://gtkwave.sourceforge.net/) for waveforms:
 
-    winget install IcarusVerilog.IcarusVerilog
+    winget install Icarus.Verilog
 
-Reopen the shell afterwards so `iverilog` lands on `PATH`.
+The installer does not touch `PATH`. Add both of these to it, then reopen the
+shell:
+
+    C:\iverilog\bin
+    C:\iverilog\gtkwave\bin
+
+Verify with `iverilog -V`. Tested against Icarus Verilog 12.0.

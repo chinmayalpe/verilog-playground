@@ -50,15 +50,20 @@ if ($Clean) {
 }
 
 if (-not (Get-Command iverilog -ErrorAction SilentlyContinue)) {
-    Write-Error "iverilog not found on PATH. Install Icarus Verilog, e.g. 'winget install IcarusVerilog.IcarusVerilog', then reopen the shell."
+    Write-Error "iverilog not found on PATH. Install it with 'winget install Icarus.Verilog', then add C:\iverilog\bin to PATH and reopen the shell."
 }
 
+# The outer @(...) is load-bearing: a project with a single .v file would
+# otherwise leave $sources a bare string, and passing a string where an argument
+# array is expected feeds the command one character at a time.
 $sources = @(
-    (Join-Path $projDir 'src'),
-    (Join-Path $projDir 'tb')
-) | Where-Object { Test-Path $_ } |
-    ForEach-Object { Get-ChildItem $_ -Filter *.v -File } |
-    Select-Object -ExpandProperty FullName
+    @(
+        (Join-Path $projDir 'src'),
+        (Join-Path $projDir 'tb')
+    ) | Where-Object { Test-Path $_ } |
+        ForEach-Object { Get-ChildItem $_ -Filter *.v -File } |
+        Select-Object -ExpandProperty FullName
+)
 
 if ($sources.Count -eq 0) {
     Write-Error "No .v files under $projDir\{src,tb}."
@@ -70,7 +75,7 @@ if (-not (Test-Path $buildDir)) {
 $vvpOut = Join-Path $buildDir 'sim.vvp'
 
 Write-Host "Compiling $Project ($($sources.Count) file(s))..." -ForegroundColor Cyan
-& iverilog -g2012 -Wall -o $vvpOut @sources
+& iverilog -g2012 -Wall -o $vvpOut $sources
 if ($LASTEXITCODE -ne 0) { Write-Error "iverilog failed with exit code $LASTEXITCODE" }
 
 # Run from the build dir so any $dumpfile output lands there, not in the repo root.
