@@ -1,0 +1,16 @@
+# Normalize to LF in the repo. The Makefile in particular must stay LF --
+# make chokes on CRLF recipe lines ("command not found" on a trailing \r).
+* text=auto eol=lf
+
+Makefile text eol=lf
+*.v       text eol=lf
+*.mk      text eol=lf
+*.md      text eol=lf
+
+# PowerShell stays CRLF, as is conventional on Windows.
+*.ps1 text eol=crlf
+
+# Never munge these.
+*.vcd binary
+*.fst binary
+*.vvp binary

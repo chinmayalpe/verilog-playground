@@ -1,0 +1,29 @@
+# Simulation build output
+build/
+*.vvp
+*.out
+a.out
+
+# Waveforms
+*.vcd
+*.fst
+*.ghw
+
+# Vendor tool cruft
+*.jou
+*.log
+*.pb
+xsim.dir/
+.Xil/
+work/
+transcript
+modelsim.ini
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+*~
+Thumbs.db
+desktop.ini
+.DS_Store
