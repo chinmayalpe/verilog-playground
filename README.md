@@ -11,6 +11,10 @@ setup at the repo root.
       01-hello-world/     a project: src/, optional tb/, its own README
         src/              the design (synthesizable code)
         README.md
+      02-basic-gates/     all seven gates + self-checking testbench
+        src/
+        tb/
+        README.md
       _template/          copy this to start a new project
         src/
         tb/               testbench: stimulus, $display, $finish
@@ -39,6 +43,17 @@ bundles [GTKWave](https://gtkwave.sourceforge.net/) for waveforms.
        iverilog -V
 
 Tested against Icarus Verilog 12.0.
+
+### If PowerShell refuses to run run.ps1
+
+A default Windows install blocks local scripts, so `.\run.ps1` fails with
+*"running scripts is disabled on this system"*. Either allow local scripts once:
+
+    Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+
+or bypass it per run, changing nothing:
+
+    powershell -ExecutionPolicy Bypass -File .\run.ps1 02-basic-gates
 
 ### Optional: make
 
@@ -103,6 +118,29 @@ Expected output:
 
 The second line is just Icarus reporting where `$finish` was hit, not an error.
 The path is relative under `make`, absolute under `run.ps1`.
+
+### 02-basic-gates
+
+All seven basic gates — AND, OR, NOT, NAND, NOR, XOR, XNOR — on shared inputs,
+built from Verilog's gate primitives and cross-checked in the testbench against
+the operator form of the same logic.
+
+    make run PROJ=02-basic-gates
+    .\run.ps1 02-basic-gates
+
+Expected output:
+
+      a b | and or not_a nand nor xor xnor
+      ----+--------------------------------
+      0 0 |  0   0    1     1    1   0    1
+      0 1 |  0   1    1     1    0   1    0
+      1 0 |  0   1    0     1    0   1    0
+      1 1 |  1   1    0     0    0   0    1
+
+    basic_gates_tb: all 28 checks passed
+
+A failing gate is named with both values and ends in `$fatal`, so the build
+fails rather than the error scrolling past. See the project's README for detail.
 
 ### _template (not a project)
 
